@@ -1,0 +1,28 @@
+[project]
+name = "swim-project"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Vsevolod",email = "vsevolodtroy@gmail.com"}
+]
+
+readme = "README.md"
+requires-python = ">=3.12"
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.dependencies]
+streamlit = "*"
+ipykernel = "*"
+folium = "*"
+streamlit-folium = "*"
+geopy = "*"
+google-api-python-client = "^2.159.0"
+oauth2client = "^4.1.3"
+google-auth-httplib2 = "^0.2.0"
+google-auth-oauthlib = "^1.2.1"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

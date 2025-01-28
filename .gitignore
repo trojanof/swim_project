@@ -1,0 +1,11 @@
+#configs / creds
+/creds
+
+#jupyter
+*.ipynb
+
+#pycache
+__pycache__
+
+#venv
+.venv
