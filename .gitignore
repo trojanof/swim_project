@@ -1,5 +1,6 @@
 #configs / creds
 /creds
+.streamlit
 
 #jupyter
 *.ipynb
