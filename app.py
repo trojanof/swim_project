@@ -105,7 +105,7 @@ def draw_marker(coord, caption):
     '''
     marker = folium.CircleMarker(
         location=coord,
-        radius=5,
+        radius=7,
         fill=True,
         popup=folium.Popup(caption),
         color='red'
@@ -146,7 +146,6 @@ def draw_map(start_coord,
             icon_size=(50, 50)
             )
 
-        # remainning_dist = int((remaining_dist) * 1000)
         folium.Marker(
             location=current_point,
             icon=icon,
@@ -162,16 +161,17 @@ def draw_map(start_coord,
             locations=curr_coords,
             color="#FF0000",
             weight=4,
-            tooltip="Проплыто"
+            tooltip=f"Проплыто {distance_travelled} м"
             ).add_to(world_map)
 
         route_array = get_points_list_along_path(start_coord, finish_coord)
 
+        length = distance_travelled + remaining_dist
         folium.PolyLine(
             locations=route_array,
             color="#008000",
             weight=2,
-            tooltip="Траектория заплыва",
+            tooltip=f"Траектория заплыва, длина {length} м",
             dash_array='5',
             opacity=0.3
             ).add_to(world_map)
@@ -183,7 +183,6 @@ def draw_map(start_coord,
 def main():
     st.title(APP_TITLE)
     today = datetime.now().date().strftime("%d.%m.%Y")
-    # today = '19.01.2025'
     st.session_state.map = None
     overall_distance = get_distance_at_day(today)
     df, ind = get_location(overall_distance)
@@ -203,7 +202,7 @@ def main():
                  finish_caption,
                  distance_travelled=current_distance,
                  remaining_dist=remaining_dist)
-    folium_static(m)
+    folium_static(m, width=600)
 
 
 if __name__ == "__main__":
