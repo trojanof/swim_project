@@ -17,9 +17,9 @@ def get_service_from_var():
     tmp_dir_path = Path(tmp_dir.name)
     json_path = tmp_dir_path / 'creds.json'
     with open(json_path, 'w') as f:
-        json.dump(creds_obj, f)
+        f.write(json.dumps(creds_obj, indent=2))
     creds_service = ServiceAccountCredentials.from_json_keyfile_name(
-        CREDENTIALS,
+        json_path,
         SCOPES
         ).authorize(httplib2.Http())
     tmp_dir.cleanup()
