@@ -5,10 +5,11 @@ import geopy.distance
 import math
 import pandas as pd
 from datetime import datetime
-from settings import METERS_SHEET_NAME, LOCATIONS_SHEET_NAME
+from settings import METERS_SHEET_NAME, LOCATIONS_SHEET_NAME, INTRO_MESSAGE, \
+    CLUB_URL, INFO_URL
 from parse_sheets import get_df_from_google_sheet
 
-APP_TITLE = 'Виртуальные заплывы клуба SwimOcean'
+APP_TITLE = ("Виртуальные заплывы клуба [SwimOcean](%s)" % CLUB_URL)
 
 
 def get_distance_at_day(day):
@@ -182,6 +183,10 @@ def draw_map(start_coord,
 
 def main():
     st.title(APP_TITLE)
+    st.write(INTRO_MESSAGE)
+    st.markdown("Сейчас мы выбрали плыть [7 проливов](%s)" % INFO_URL)
+    st.markdown("*Посмотрите где мы находимся :blue-background[сегодня]:*")
+
     today = datetime.now().date().strftime("%d.%m.%Y")
     st.session_state.map = None
     overall_distance = get_distance_at_day(today)
