@@ -188,6 +188,7 @@ def main():
     st.markdown("*Посмотрите где мы находимся :blue-background[сегодня]:*")
 
     today = datetime.now().date().strftime("%d.%m.%Y")
+    today = pd.to_datetime(today, dayfirst=True)
     st.session_state.map = None
     overall_distance = get_distance_at_day(today)
     df, ind = get_location(overall_distance)
