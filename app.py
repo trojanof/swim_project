@@ -178,7 +178,7 @@ def prepare_map(start_coord,
         folium.PolyLine(
             locations=curr_coords,
             color="#FF0000",
-            weight=4,
+            weight=5,
             tooltip=f"Проплыто {distance_travelled} м"
             ).add_to(world_map)
 
