@@ -206,13 +206,13 @@ def main():
     today = datetime.now(tz).date().strftime("%d.%m.%Y")
     st.session_state.map = None
 
-    date_range = pd.date_range(START_DATE, today, freq='d').date
+    date_range = pd.date_range(START_DATE, today, freq='d').date.tolist()
+    date_range.reverse()
     sel_caption = ("Или вы можете выбрать день из спика ниже и "
                    "посмотреть где мы были в определнную дату")
     day = st.selectbox(
         sel_caption,
         date_range,
-        index=len(date_range) - 1,
         )
 
     day = pd.to_datetime(day, dayfirst=True)
