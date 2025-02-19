@@ -6,7 +6,7 @@ import math
 import pandas as pd
 from datetime import datetime
 from settings import METERS_SHEET_NAME, LOCATIONS_SHEET_NAME, INTRO_MESSAGE, \
-    CLUB_URL, INFO_URL
+    CLUB_URL, INFO_URL, DEFAULT_START_CAPTION, DEFAULT_FINISH_CAPTION
 from parse_sheets import get_df_from_google_sheet
 
 APP_TITLE = ("Виртуальные заплывы клуба [SwimOcean](%s)" % CLUB_URL)
@@ -38,7 +38,8 @@ def get_location(dist):
     return df, ind
 
 
-def calculate_initial_compass_bearing(start, end):
+def calculate_initial_compass_bearing(start: tuple,
+                                      end: tuple) -> float:
     '''
     Calculates compass bearing (angle) fro start to end point
     '''
@@ -63,14 +64,16 @@ def distance_between(start, end):
     return geopy.distance.distance(start, end).km
 
 
-def location_at_dist(start,
-                     end,
-                     distance_travelled) -> tuple[float, float]:
+def location_at_dist(start: tuple,
+                     end: tuple,
+                     distance_travelled,
+                     bearing: float | None = None) -> tuple[float, float]:
     '''
     Claculates point location between start and end point along straight
     line on a given distance
     '''
-    bearing = calculate_initial_compass_bearing(start, end)
+    if not bearing:
+        bearing = calculate_initial_compass_bearing(start, end)
     point = geopy.distance.distance(
         kilometers=distance_travelled).destination(
         start,
@@ -80,7 +83,7 @@ def location_at_dist(start,
     return current_location
 
 
-def get_points_list_along_path(start_point, finish_point):
+def get_points_list_along_path(start_point, finish_point, bearing=None):
     '''
     Creates a list of points with coordinates between
     start and finish points. To be used for polyline drawing
@@ -88,19 +91,20 @@ def get_points_list_along_path(start_point, finish_point):
     route_array = []
     route_array.append(tuple(start_point))
     full_dist = distance_between(start_point, finish_point)
-    for i in range(10, 100, 10):
+    for i in range(1, 100, 1):
         dist = full_dist * i / 100
         pt = location_at_dist(
             tuple(start_point),
             tuple(finish_point),
-            dist
+            dist,
+            bearing
             )
         route_array.append(pt)
     route_array.append(tuple(finish_point))
     return route_array
 
 
-def draw_marker(coord, caption):
+def draw_marker(coord, caption=''):
     '''
     Creates a marker with caption. To be added to the map
     '''
@@ -114,19 +118,24 @@ def draw_marker(coord, caption):
     return marker
 
 
-def draw_map(start_coord,
-             finish_coord,
-             start_caption,
-             finish_caption,
-             distance_travelled,
-             remaining_dist):
+def prepare_map(start_coord,
+                finish_coord,
+                start_caption,
+                finish_caption,
+                dist,
+                distance_travelled):
     '''
     Creates a map with start/finish points markers, tarjectory line
     and a highlighted line of travelled distance
     '''
     if 'map' not in st.session_state or st.session_state.map is None:
+        half_dist = distance_between(start_coord, finish_coord) / 2
+        center_point = location_at_dist(tuple(start_coord),
+                                        tuple(finish_coord),
+                                        half_dist)
+
         world_map = folium.Map(
-            location=start_coord,
+            location=center_point,
             zoom_start=10,
             tiles="OpenStreetMap",
             attributionControl=0
@@ -135,29 +144,35 @@ def draw_map(start_coord,
         draw_marker(start_coord, start_caption).add_to(world_map)
         draw_marker(finish_coord, finish_caption).add_to(world_map)
 
+        dist_on_map = distance_between(start_coord, finish_coord) * 1000
+        portion_travelled = distance_travelled / dist
+        graphical_distance = round(portion_travelled * dist_on_map)
         current_point = location_at_dist(
             tuple(start_coord),
             tuple(finish_coord),
-            distance_travelled / 1000
+            graphical_distance / 1000
             )
+        current_point = tuple(round(i, 3) for i in current_point)
+        bearing = calculate_initial_compass_bearing(start=tuple(start_coord),
+                                                    end=tuple(finish_coord))
+        if 0 <= bearing <= 180:
+            icon_image = 'swimmer_right.png'
+        else:
+            icon_image = 'swimmer_left.png'
 
-        icon_image = 'swimmer.png'
         icon = folium.CustomIcon(
             icon_image,
             icon_size=(50, 50)
             )
+        remaining_dist = dist - distance_travelled
+        folium.Marker(location=current_point,
+                      icon=icon,
+                      popup=folium.Popup(
+                          f'Мы тут! До конца пролива {remaining_dist} м',
+                          parse_html=True,
+                          max_width=100)).add_to(world_map)
 
-        folium.Marker(
-            location=current_point,
-            icon=icon,
-            popup=folium.Popup(
-                f'Мы тут! До конца пролива {remaining_dist} м',
-                parse_html=True,
-                max_width=100)
-            ).add_to(world_map)
-
-        curr_coords = [start_coord, current_point]
-
+        curr_coords = get_points_list_along_path(start_coord, current_point)
         folium.PolyLine(
             locations=curr_coords,
             color="#FF0000",
@@ -166,13 +181,11 @@ def draw_map(start_coord,
             ).add_to(world_map)
 
         route_array = get_points_list_along_path(start_coord, finish_coord)
-
-        length = distance_travelled + remaining_dist
         folium.PolyLine(
             locations=route_array,
             color="#008000",
             weight=2,
-            tooltip=f"Траектория заплыва, длина {length} м",
+            tooltip=f"Траектория заплыва, длина {dist} м",
             dash_array='5',
             opacity=0.3
             ).add_to(world_map)
@@ -190,25 +203,40 @@ def main():
     today = datetime.now().date().strftime("%d.%m.%Y")
     today = pd.to_datetime(today, dayfirst=True)
     st.session_state.map = None
+
     overall_distance = get_distance_at_day(today)
     df, ind = get_location(overall_distance)
-    current_distance = overall_distance - df.loc[ind-1, 'Cumul_dist'].values[0]
-    remaining_dist = df.loc[ind, 'Cumul_dist'].values[0] - overall_distance
+    if ind == df.index.min():
+        current_dist = overall_distance
+    else:
+        current_dist = overall_distance - df.loc[ind-1, 'Cumul_dist'].values[0]
+
     start_coord = df.loc[ind, 'Start_point'].values[0].split(',')
     finish_coord = df.loc[ind, 'Finish_point'].values[0].split(',')
     start_coord = [float(i) for i in start_coord]
     finish_coord = [float(i) for i in finish_coord]
+
+    dist = int(df.loc[ind, 'Distance'].values[0])
+
     start_caption = df.loc[ind, 'Start_caption'].values[0]
     finish_caption = df.loc[ind, 'Finish_caption'].values[0]
+    if start_caption:
+        start_caption = DEFAULT_START_CAPTION + ': ' + start_caption
+    else:
+        start_caption = DEFAULT_START_CAPTION
+    if finish_caption:
+        finish_caption = DEFAULT_FINISH_CAPTION + ': ' + finish_caption
+    else:
+        finish_caption = DEFAULT_FINISH_CAPTION
     description = df.loc[ind, 'Description'].values[0]
     st.write(description)
-    m = draw_map(start_coord,
-                 finish_coord,
-                 start_caption,
-                 finish_caption,
-                 distance_travelled=current_distance,
-                 remaining_dist=remaining_dist)
-    folium_static(m, width=600)
+    map = prepare_map(start_coord,
+                      finish_coord,
+                      start_caption,
+                      finish_caption,
+                      dist,
+                      distance_travelled=current_dist)
+    folium_static(map, width=600)
 
 
 if __name__ == "__main__":
