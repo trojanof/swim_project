@@ -202,9 +202,8 @@ def main():
     st.markdown("Сейчас мы выбрали плыть [7 проливов](%s)" % INFO_URL)
     st.markdown("*Посмотрите где мы находимся :blue-background[сегодня]:*")
 
-    today = datetime.now()
     tz = pytz.timezone('Asia/Yekaterinburg')
-    today = tz.localize(today).date().strftime("%d.%m.%Y")
+    today = datetime.now(tz).date().strftime("%d.%m.%Y")
     st.session_state.map = None
 
     date_range = pd.date_range(START_DATE, today, freq='d').date
