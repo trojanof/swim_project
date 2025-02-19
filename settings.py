@@ -13,3 +13,5 @@ INTRO_MESSAGE = txt
 CLUB_URL = 'https://swimocean.ru/'
 INFO_URL = ("https://vc.ru/travel/"
             "1053812-klub-oceans-seven-ekstremalnye-zaplyvy-na-otkrytoi-vode")
+DEFAULT_START_CAPTION = 'Точка старта'
+DEFAULT_FINISH_CAPTION = 'Точка финиша'
