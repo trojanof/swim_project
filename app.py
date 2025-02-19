@@ -1,10 +1,11 @@
+from datetime import datetime
+import pytz
 import streamlit as st
 import folium
 from streamlit_folium import folium_static
 import geopy.distance
 import math
 import pandas as pd
-from datetime import datetime
 from settings import (METERS_SHEET_NAME, LOCATIONS_SHEET_NAME, INTRO_MESSAGE,
                       CLUB_URL, INFO_URL, DEFAULT_START_CAPTION,
                       DEFAULT_FINISH_CAPTION, START_DATE)
@@ -201,7 +202,9 @@ def main():
     st.markdown("Сейчас мы выбрали плыть [7 проливов](%s)" % INFO_URL)
     st.markdown("*Посмотрите где мы находимся :blue-background[сегодня]:*")
 
-    today = datetime.now().date().strftime("%d.%m.%Y")
+    today = datetime.now().date()
+    tz = pytz.timezone('Asia/Yekaterinburg')
+    today = tz.localize(today).strftime("%d.%m.%Y")
     st.session_state.map = None
 
     date_range = pd.date_range(START_DATE, today, freq='d').date
