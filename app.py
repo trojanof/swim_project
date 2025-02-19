@@ -5,9 +5,9 @@ import geopy.distance
 import math
 import pandas as pd
 from datetime import datetime
-from settings import METERS_SHEET_NAME, LOCATIONS_SHEET_NAME, INTRO_MESSAGE, \
-    CLUB_URL, INFO_URL, DEFAULT_START_CAPTION, DEFAULT_FINISH_CAPTION, \
-    START_DATE
+from settings import (METERS_SHEET_NAME, LOCATIONS_SHEET_NAME, INTRO_MESSAGE,
+                      CLUB_URL, INFO_URL, DEFAULT_START_CAPTION,
+                      DEFAULT_FINISH_CAPTION, START_DATE)
 from parse_sheets import get_df_from_google_sheet
 
 APP_TITLE = ("Виртуальные заплывы клуба [SwimOcean](%s)" % CLUB_URL)
