@@ -186,7 +186,7 @@ def prepare_map(start_coord,
         folium.PolyLine(
             locations=route_array,
             color="#008000",
-            weight=2,
+            weight=4,
             tooltip=f"Траектория заплыва, длина {dist} м",
             dash_array='5',
             opacity=0.3
