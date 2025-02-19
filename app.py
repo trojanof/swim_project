@@ -6,7 +6,8 @@ import math
 import pandas as pd
 from datetime import datetime
 from settings import METERS_SHEET_NAME, LOCATIONS_SHEET_NAME, INTRO_MESSAGE, \
-    CLUB_URL, INFO_URL, DEFAULT_START_CAPTION, DEFAULT_FINISH_CAPTION
+    CLUB_URL, INFO_URL, DEFAULT_START_CAPTION, DEFAULT_FINISH_CAPTION, \
+    START_DATE
 from parse_sheets import get_df_from_google_sheet
 
 APP_TITLE = ("Виртуальные заплывы клуба [SwimOcean](%s)" % CLUB_URL)
@@ -201,10 +202,19 @@ def main():
     st.markdown("*Посмотрите где мы находимся :blue-background[сегодня]:*")
 
     today = datetime.now().date().strftime("%d.%m.%Y")
-    today = pd.to_datetime(today, dayfirst=True)
     st.session_state.map = None
 
-    overall_distance = get_distance_at_day(today)
+    date_range = pd.date_range(START_DATE, today, freq='d').date
+    sel_caption = ("Или вы можете выбрать день из спика ниже и "
+                   "посмотреть где мы были в определнную дату")
+    day = st.selectbox(
+        sel_caption,
+        date_range,
+        index=len(date_range) - 1,
+        )
+
+    day = pd.to_datetime(day, dayfirst=True)
+    overall_distance = get_distance_at_day(day)
     df, ind = get_location(overall_distance)
     if ind == df.index.min():
         current_dist = overall_distance
