@@ -208,8 +208,8 @@ def main():
 
     date_range = pd.date_range(START_DATE, today, freq='d').date.tolist()
     date_range.reverse()
-    sel_caption = ("Или вы можете выбрать день из спика ниже и "
-                   "посмотреть где мы были в определнную дату")
+    sel_caption = ("Или вы можете выбрать день из списка ниже и "
+                   "посмотреть где мы были в определенную дату")
     day = st.selectbox(
         sel_caption,
         date_range,
