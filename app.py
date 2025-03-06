@@ -204,6 +204,7 @@ def main():
 
     tz = pytz.timezone('Asia/Yekaterinburg')
     today = datetime.now(tz).date().strftime("%d.%m.%Y")
+    today = pd.to_datetime(today, dayfirst=True)
     st.session_state.map = None
 
     date_range = pd.date_range(START_DATE, today, freq='d').date.tolist()
