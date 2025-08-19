@@ -138,7 +138,7 @@ def prepare_map(start_coord,
 
         world_map = folium.Map(
             location=center_point,
-            zoom_start=10,
+            # zoom_start=10,
             tiles="OpenStreetMap",
             attributionControl=0
             )
