@@ -7,7 +7,7 @@ import geopy.distance
 import math
 import pandas as pd
 from settings import (METERS_SHEET_NAME, LOCATIONS_SHEET_NAME, INTRO_MESSAGE,
-                      CLUB_URL, INFO_URL, DEFAULT_START_CAPTION,
+                      CLUB_URL, DEFAULT_START_CAPTION,
                       DEFAULT_FINISH_CAPTION, START_DATE)
 from parse_sheets import get_df_from_google_sheet
 
@@ -138,9 +138,11 @@ def prepare_map(start_coord,
 
         world_map = folium.Map(
             location=center_point,
-            # zoom_start=10,
+            zoom_start=8,
             tiles="OpenStreetMap",
-            attributionControl=0
+            attributionControl=0,
+            control_scale=True,
+
             )
 
         draw_marker(start_coord, start_caption).add_to(world_map)
@@ -170,7 +172,7 @@ def prepare_map(start_coord,
         folium.Marker(location=current_point,
                       icon=icon,
                       popup=folium.Popup(
-                          f'Мы тут! До конца пролива {remaining_dist} м',
+                          f'Мы тут! До конца этого заплыва {remaining_dist} м',
                           parse_html=True,
                           max_width=100)).add_to(world_map)
 
@@ -185,7 +187,7 @@ def prepare_map(start_coord,
         route_array = get_points_list_along_path(start_coord, finish_coord)
         folium.PolyLine(
             locations=route_array,
-            color="#008000",
+            color="#000980",
             weight=2,
             tooltip=f"Траектория заплыва, длина {dist} м",
             dash_array='5',
@@ -199,7 +201,6 @@ def prepare_map(start_coord,
 def main():
     st.title(APP_TITLE)
     st.write(INTRO_MESSAGE)
-    st.markdown("Сейчас мы выбрали плыть [7 проливов](%s)" % INFO_URL)
     st.markdown("*Посмотрите где мы находимся :blue-background[сегодня]:*")
 
     tz = pytz.timezone('Asia/Yekaterinburg')
@@ -249,6 +250,24 @@ def main():
                       finish_caption,
                       dist,
                       distance_travelled=current_dist)
+
+    map.fit_bounds(bounds=[start_coord, finish_coord],
+                   padding_top_left=start_coord,
+                   padding_bottom_right=finish_coord
+                   )
+    df = df[:ind.values[0]]
+    for i, row in df[:-1].iterrows():
+        start_point = row['Start_point'].split(',')
+        finish_point = row['Finish_point'].split(',')
+        start_point = [float(coor) for coor in start_point]
+        finish_point = [float(coor) for coor in finish_point]
+        tmp = get_points_list_along_path(start_point, finish_point)
+        folium.PolyLine(
+            locations=tmp,
+            color="#008000",
+            weight=5,
+            tooltip="Уже проплыто",
+            ).add_to(map)
     folium_static(map, width=600)
 
 
