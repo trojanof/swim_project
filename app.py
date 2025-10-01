@@ -142,7 +142,6 @@ def prepare_map(start_coord,
             tiles="OpenStreetMap",
             attributionControl=0,
             control_scale=True,
-
             )
 
         draw_marker(start_coord, start_caption).add_to(world_map)
